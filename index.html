@@ -1,144 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>PixelBox</title>
-        <script src="dist/gpu-browser.min.js"></script>
-    </head>
-<body>
-    <div>
-        <canvas id="canvas" style="background-color: transparent;"></canvas>
-    </div>
-	<p>Controls: F, G, LMB (english keyboard)</p>
-</body>
-
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Planet</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="TemplateData/UnityProgress.js"></script>
+    <script src="Build/UnityLoader.js"></script>
     <script>
-        const canvas = document.getElementById('canvas');
-
-        const dim = 900;
-        
-        var mousex;
-        var mousey;
-
-        const gpu = new GPU({
-            canvas: canvas,
-            mode: 'gpu',
-        });
-
-        let pmagnets = [];
-        let nmagnets = [];
-
-        let particles = [dim];
-
-        for(let i = 0; i < dim; i++)
-            particles[i] = [dim];
-
-        for(let i = 0; i < dim; i++)
-            for(let j = 0; j < dim; j++)
-                particles[i][j] = 0;
-
-        const render = gpu.createKernel(function (a) {
-            if(a[this.thread.x][this.thread.y] === 1)
-                this.color(this.thread.x / 900, this.thread.y / 900, 1);
-            else
-                this.color(0, 0, 0);
-        }, {
-            useLegacyEncoder: true,
-            output: [dim, dim],
-            graphical: true
-        });
-
-        class Particle {
-            constructor(x , y) {
-
-                this.x = Math.round(x);
-                this.y = Math.round(y);
-
-                this.velx = 0;
-                this.vely = 0;
-
-                this.update = setInterval(() => {
-
-                    for(let i = 0; i < pmagnets.length; i++)
-                    {
-                        let dirx = (pmagnets[i].x - this.x);
-                        let diry = (pmagnets[i].y - this.y);
-
-                        let mag = Math.sqrt(dirx * dirx + diry * diry) || 1;
-
-                        this.velx += (((dirx) / mag));
-                        this.vely += (((diry) / mag));
-                    }
-
-                    for(let i = 0; i < nmagnets.length; i++)
-                    {
-                        let dirx = (nmagnets[i].x - this.x);
-                        let diry = (nmagnets[i].y - this.y);
-
-                        let mag = Math.sqrt(dirx * dirx + diry * diry) || 1;
-
-                        this.velx += -(((dirx) / mag));
-                        this.vely += -(((diry) / mag));
-                    }
-
-                    if(this.velx || this.vely)
-                    {
-                        particles[Math.round(this.x)][Math.round(this.y)] = 0;
-
-                        this.x += this.velx;
-                        this.y += this.vely;
-
-                        if(Math.round(this.x) > 0 && Math.round(this.x) < dim && Math.round(this.y > 0) && Math.round(this.y) < dim) {
-                            particles[Math.round(this.x)][Math.round(this.y)] = 1;
-                        } else {
-                            clearInterval(this.update);
-                            delete this;
-                        }
-                    }
-                }, 1000 / 60);
-
-                particles[this.x + this.velx][this.y + this.vely] = 1;
-            }
-        }
-
-        canvas.onmousemove = function(event) {
-            mousex = event.x - canvas.offsetLeft;
-            mousey = dim - event.y - canvas.offsetTop + 15;
-        };
-
-        canvas.onmousedown = function(event) {
-            for(let i = 0; i < 100; i++)
-                   new Particle(mousex + Math.random() * 200 - 100, mousey + Math.random() * 200 - 100);
-        };
-
-        document.addEventListener('keypress', (event) => {
-            const keyName = event.key;
-
-            if(keyName === 'f')
-            {
-                pmagnets.push({
-                    x: mousex,
-                    y: mousey,
-                });
-            }
-
-            if(keyName === 'g')
-            {
-                nmagnets.push({
-                    x: mousex,
-                    y: mousey,
-                });
-
-            }
-        });
-
-        const draw = () => {
-            render(particles);
-
-            window.requestAnimationFrame(draw);
-        };
-
-        window.requestAnimationFrame(draw);
-
+      var unityInstance = UnityLoader.instantiate("unityContainer", "Build/Planet.json", {onProgress: UnityProgress});
     </script>
+  </head>
+  <body>
+    <div class="webgl-content">
+      <div id="unityContainer" style="width: 960px; height: 600px"></div>
+      <div class="footer">
+        <div class="webgl-logo"></div>
+        <div class="fullscreen" onclick="unityInstance.SetFullscreen(1)"></div>
+        <div class="title">Planet</div>
+      </div>
+    </div>
+  </body>
 </html>
